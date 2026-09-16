@@ -1,7 +1,7 @@
 [plugin]
 id = "opencad.help"
 name = "OCS Help"
-version = "0.1.0"
+version = "0.2.0"
 description = "Opens the bundled OCS Commands PDF"
 author = "Open CAD Studio contributors"
 license = "GPL-3.0-only"
