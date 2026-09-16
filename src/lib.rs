@@ -11,9 +11,14 @@ use std::process::Command;
 
 use ocs_plugin_api::host::{BuiltinPlugin, HostApi};
 use ocs_plugin_api::manifest::{ApiVersion, PluginManifest};
-use ocs_plugin_api::ribbon::{CadModule, IconKind, ModuleEvent, RibbonGroup, RibbonItem, ToolDef};
+use ocs_plugin_api::ribbon::{CadModule, IconKind, RibbonGroup, RibbonItem};
 
 const OCS_COMMANDS_PDF: &[u8] = include_bytes!("../assets/ocs-commands.pdf");
+
+/// Command id for the one help topic today (the bundled OCS Commands PDF).
+/// Shared between `dispatch()`'s match arm and the ribbon dropdown's item so
+/// the two can't drift apart into a dropdown entry that silently no-ops.
+const HELP_TOPIC_PDF: &str = "OCS_HELP";
 
 static MANIFEST: PluginManifest = PluginManifest {
     id: "opencad.help",
@@ -23,7 +28,7 @@ static MANIFEST: PluginManifest = PluginManifest {
     api_version: ApiVersion::CURRENT,
     ribbon_order: 900,
     xdata_apps: &[],
-    command_prefixes: &["OCS_HELP"],
+    command_prefixes: &[HELP_TOPIC_PDF],
 };
 
 struct HelpModule;
@@ -37,17 +42,24 @@ impl CadModule for HelpModule {
         "Help"
     }
 
+    /// A dropdown, not a plain button: clicking the icon still opens the last
+    /// (or only, today) topic directly, but the arrow reveals a topic list —
+    /// the shape a second help document (see `PLUGIN.md`) slots into without
+    /// another redesign. `id`/`items[].0` are dispatched to `dispatch()` as
+    /// command strings by the host exactly like a `ToolDef.event`'s
+    /// `Command(...)` would be — no dispatch changes needed for this.
     fn ribbon_groups(&self) -> &[RibbonGroup] {
         static GROUPS: std::sync::OnceLock<Vec<RibbonGroup>> = std::sync::OnceLock::new();
         GROUPS.get_or_init(|| {
             vec![RibbonGroup {
                 title: "Reference",
-                tools: vec![RibbonItem::LargeTool(ToolDef {
-                    id: "OCS_HELP",
-                    label: "OCS Commands",
+                tools: vec![RibbonItem::LargeDropdown {
+                    id: HELP_TOPIC_PDF,
+                    label: "Help",
                     icon: IconKind::Glyph("?"),
-                    event: ModuleEvent::Command("OCS_HELP".to_string()),
-                })],
+                    items: vec![(HELP_TOPIC_PDF, "OCS Commands", IconKind::Glyph("?"))],
+                    default: HELP_TOPIC_PDF,
+                }],
             }]
         })
     }
@@ -67,7 +79,7 @@ impl BuiltinPlugin for HelpPlugin {
     fn dispatch(&self, host: &mut dyn HostApi, cmd: &str) -> bool {
         match cmd.trim() {
             // HELP intentionally overrides the host's built-in web link.
-            "HELP" | "OCS_HELP" => {
+            "HELP" | HELP_TOPIC_PDF => {
                 open_embedded_pdf(host);
                 true
             }
@@ -142,6 +154,25 @@ mod tests {
     fn embedded_document_is_the_ocs_commands_pdf() {
         assert_eq!(OCS_COMMANDS_PDF.len(), 4_253_366);
         assert!(OCS_COMMANDS_PDF.starts_with(b"%PDF-"));
+    }
+
+    /// The ribbon must stay a dropdown (icon + ▾ topic list), not a plain
+    /// button — that's the whole point of this shape (room for a second help
+    /// topic without another redesign) — and every item id must be one
+    /// `dispatch()` actually recognizes. The two sides share `HELP_TOPIC_PDF`
+    /// rather than repeating the string literal, so this test is really
+    /// checking the ribbon *shape*, not re-deriving the constant.
+    #[test]
+    fn ribbon_is_a_dropdown_whose_items_dispatch() {
+        let groups = HelpModule.ribbon_groups();
+        assert_eq!(groups.len(), 1);
+        assert_eq!(groups[0].tools.len(), 1);
+        let RibbonItem::LargeDropdown { items, default, .. } = &groups[0].tools[0] else {
+            panic!("expected the Help tab's tool to be a LargeDropdown");
+        };
+        assert!(!items.is_empty(), "a help menu with no topics is useless");
+        assert!(items.iter().any(|(id, _, _)| *id == *default));
+        assert!(items.iter().any(|(id, _, _)| *id == HELP_TOPIC_PDF));
     }
 
     #[test]
