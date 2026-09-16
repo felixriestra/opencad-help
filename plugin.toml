@@ -1,0 +1,15 @@
+[plugin]
+id = "opencad.help"
+name = "OCS Help"
+version = "0.1.0"
+description = "Opens the bundled OCS Commands PDF"
+author = "Open CAD Studio contributors"
+license = "GPL-3.0-only"
+
+[opencad]
+api_version = 5
+acadrust_source = "git+https://github.com/HakanSeven12/cadcodec.git?rev=568a12c#568a12cb97c24e14b1cc488085b3f81cf89b94d9"
+rustc_version = "rustc 1.96.0 (ac68faa20 2026-05-25)"
+ribbon_order = 900
+command_prefixes = ["OCS_HELP"]
+xdata_apps = []
