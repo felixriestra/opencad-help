@@ -14,4 +14,4 @@ crate-type = ["cdylib"]
 [dependencies]
 # Pin the exact OCS source used by the host build. Rust trait-object ABI is not
 # stable, so a floating branch is not safe for native plugin releases.
-ocs_plugin_api = { git = "https://github.com/felixriestra/OpenCADStudio.git", rev = "612124b84b84e6817883774f5bf1bef9ba48c67f", features = ["host"] }
+ocs_plugin_api = { git = "https://github.com/felixriestra/OpenCADStudio.git", rev = "ca0ee37d266051cee8c4ead13bfb425e6531bf0c", features = ["host"] }

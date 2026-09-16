@@ -146,9 +146,9 @@ dependencies = [
 
 [[package]]
 name = "cfg-if"
-version = "1.0.4"
+version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
+checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
 name = "core_detect"
@@ -570,7 +570,7 @@ dependencies = [
 [[package]]
 name = "ocs_plugin_api"
 version = "0.2.1"
-source = "git+https://github.com/felixriestra/OpenCADStudio.git?rev=612124b84b84e6817883774f5bf1bef9ba48c67f#612124b84b84e6817883774f5bf1bef9ba48c67f"
+source = "git+https://github.com/felixriestra/OpenCADStudio.git?rev=ca0ee37d266051cee8c4ead13bfb425e6531bf0c#ca0ee37d266051cee8c4ead13bfb425e6531bf0c"
 dependencies = [
  "acadrust",
  "bincode",
